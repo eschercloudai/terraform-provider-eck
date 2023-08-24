@@ -9,12 +9,12 @@ terraform {
 provider "eck" {
   host     = "https://eck.nl1.eschercloud.dev"
   username = "n.jones@eschercloud.ai"
-  project  = "1be14bad764c421a804365a49c0060c0"
+  project  = "abc123"
 }
 
 resource "eck_cluster" "terraform" {
-  name              = "terratest"
-  eckcp             = "tftest"
+  name              = "terraform"
+  eckcp             = "default"
   applicationbundle = "kubernetes-cluster-1.3.1"
   clusternetwork = {
     dnsnameservers = ["1.1.1.1", "1.0.0.1"]
@@ -28,7 +28,7 @@ resource "eck_cluster" "terraform" {
   controlplane = {
     flavor   = "g.2.standard"
     image    = "eck-230714-4bef8ab1"
-    replicas = 1
+    replicas = 3
     version  = "v1.27.2"
   }
   clusterfeatures = {
@@ -36,7 +36,7 @@ resource "eck_cluster" "terraform" {
   }
   workloadnodepools = [{
     name     = "cpu"
-    replicas = 1
+    replicas = 3
     image    = "eck-230714-4bef8ab1"
     version  = "v1.27.2"
     flavor   = "g.2.standard"
@@ -44,7 +44,6 @@ resource "eck_cluster" "terraform" {
       minimum = 1
       maximum = 2
     }
-    },
     {
       name     = "gpu"
       replicas = 1
@@ -54,18 +53,7 @@ resource "eck_cluster" "terraform" {
   }]
 }
 
-output "cluster_creation" {
-  value = eck_cluster.terraform
-}
-
 output "cluster_config" {
-  value = eck_cluster.terraform.kubeconfig
-}
-
-
-data "eck_kubeconfig" "default" {}
-
-output "kubeconfig" {
-  value = data.eck_kubeconfig.default
+  value = eck_cluster.conformance.kubeconfig
 }
 
