@@ -236,7 +236,7 @@ func (r *clusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Get refreshed values from Unikorn
-	kubernetesCluster, err := r.client.GetApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, "tftest", state.Name.ValueString())
+	kubernetesCluster, err := r.client.GetApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, state.EckCp.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading cluster information",
@@ -334,7 +334,7 @@ func (r *clusterResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	// Delete existing control plane
+	// Delete cluster
 	_, err := r.client.DeleteApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, state.EckCp.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
