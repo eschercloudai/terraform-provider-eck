@@ -113,37 +113,47 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Required: true,
+				Description: "The name of the ECK cluster.",
+				Required:    true,
 			},
 			"applicationbundle": schema.StringAttribute{
-				Computed: true,
+				Description: "The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.",
+				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The provisioning status of the cluster.",
 			},
 			"eckcp": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: "The associated ECK Control Plane for the cluster.",
 			},
 			"kubeconfig": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The kubeconfig for the cluster.",
 			},
 			"controlplane": schema.SingleNestedAttribute{
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"disk": schema.Int64Attribute{
-						Computed: true,
+						Computed:    true,
+						Description: "Whether to use a dedicated persistent volume for control plane nodes. It is recommended to leave this unchecked, as ephemeral storage provides higher performance for Kubernetes' etcd database. If left unset, the default ephemeral storage size of 20GB is used.",
 					},
 					"flavor": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "The flavor (size) of the machine.",
 					},
 					"image": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "Which OS image to use.  Must be a verified and signed ECK image",
 					},
 					"replicas": schema.Int64Attribute{
-						Computed: true,
+						Computed:    true,
+						Description: "How many replicas to provision in a control plane.  Must be an odd number, 3 is recommended.",
 					},
 					"version": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "The version of Kubernetes.  Must match the version bundled with the OS image.",
 					},
 				},
 			},
@@ -153,32 +163,41 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 					"dnsnameservers": schema.ListAttribute{
 						ElementType: types.StringType,
 						Computed:    true,
+						Description: "A list of DNS nameservers used by the OS.",
 					},
 					"nodeprefix": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "The CIDR-formatted IP address range to be used by Nodes in the cluster.",
 					},
 					"podprefix": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "The CIDR-formatted IP address range to be used by Pods in the cluster.",
 					},
 					"serviceprefix": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "The CIDR-formatted IP address range to be used by Services in the cluster.",
 					},
 				},
 			},
 			"clusteropenstack": schema.SingleNestedAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "Features which dictate OpenStack-specific behaviour and options.",
 				Attributes: map[string]schema.Attribute{
 					"computeaz": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "OpenStack Compute Availability Zone. Defaults to `nova`.",
 					},
 					"externalnetworkid": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "UUID of the external network.",
 					},
 					"sshkey": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "SSH key associated with the instance.",
 					},
 					"volumeaz": schema.StringAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "OpenStack Cinder Availability Zone. Defaults to `nova`.",
 					},
 				},
 			},
@@ -186,7 +205,8 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"autoscaling": schema.BoolAttribute{
-						Computed: true,
+						Computed:    true,
+						Description: "Enables Cluster Autoscaler, required for autoscaling workload pools.",
 					},
 				},
 			},
@@ -195,28 +215,36 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "Name of the workload pool.",
 						},
 						"flavor": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "OpenStack flavor (size) for nodes in this pool.",
 						},
 						"image": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "Operating system image to use.  Must be a valid and signed ECK image.",
 						},
 						"replicas": schema.Int64Attribute{
-							Computed: true,
+							Computed:    true,
+							Description: "How many replicas in this workload pool.",
 						},
 						"version": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "The version of Kubernetes.  Must match the version bundled with the OS image.",
 						},
 						"autoscaling": schema.SingleNestedAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "Configuration options for the autoscaler.",
 							Attributes: map[string]schema.Attribute{
 								"minimum": schema.Int64Attribute{
-									Computed: true,
+									Computed:    true,
+									Description: "Minimum number of nodes in this pool.",
 								},
 								"maximum": schema.Int64Attribute{
-									Computed: true,
+									Computed:    true,
+									Description: "Maximum number of nodes in this pool.",
 								},
 							},
 						},

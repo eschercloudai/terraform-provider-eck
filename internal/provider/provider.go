@@ -54,18 +54,22 @@ func (p *eckProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Optional: true,
+				Description: "URL for the ECK API.  Can also be supplied as the environment variable `ECK_HOST`.",
+				Optional:    true,
 			},
 			"username": schema.StringAttribute{
-				Optional: true,
+				Description: "Username for the ECK API.  Can also be supplied as the environment variable `ECK_USERNAME`.",
+				Optional:    true,
 			},
 			"password": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Description: "Password for the ECK API.  Can also be supplied as the environment variable `ECK_PASSWORD`.",
+				Optional:    true,
+				Sensitive:   true,
 			},
 			"project": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Description: "OpenStack Project UUID for the ECK API.  Can also be supplied as the environment variable `ECK_PROJECT`.",
+				Optional:    true,
+				Sensitive:   true,
 			},
 		},
 	}

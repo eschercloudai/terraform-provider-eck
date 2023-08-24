@@ -61,7 +61,8 @@ func (r *controlPlaneResource) Schema(_ context.Context, _ resource.SchemaReques
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
-				Required: true,
+				Description: "The name of the ECK Control Plane.",
+				Required:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -70,10 +71,12 @@ func (r *controlPlaneResource) Schema(_ context.Context, _ resource.SchemaReques
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"version": schema.StringAttribute{
-						Required: true,
+						Description: "The version of the ECK Control Plane.",
+						Required:    true,
 					},
 					"autoupgrade": schema.BoolAttribute{
-						Required: true,
+						Description: "Whether automatic upgrades of the ECK Control Plane are enabled.",
+						Required:    true,
 					},
 				},
 			},

@@ -59,20 +59,24 @@ func (d *controlPlaneDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"controlplanes": schema.ListNestedAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "A list of ECK Control Planes.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Computed: true,
+							Computed:    true,
+							Description: "The name of the ECK Control Plane.",
 						},
 						"applicationbundle": schema.SingleNestedAttribute{
 							Required: true,
 							Attributes: map[string]schema.Attribute{
 								"version": schema.StringAttribute{
-									Computed: true,
+									Computed:    true,
+									Description: "The version of the ECK Control Plane.",
 								},
 								"autoupgrade": schema.BoolAttribute{
-									Required: true,
+									Required:    true,
+									Description: "Whether automatic upgrades of the ECK Control Plane are enabled.",
 								},
 							},
 						},
