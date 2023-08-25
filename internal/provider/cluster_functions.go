@@ -108,6 +108,9 @@ func generateWorkloadNodePools(pools []workloadNodePoolModel) generated.Kubernet
 			workloadNodePools = append(workloadNodePools, generated.KubernetesClusterWorkloadPool{
 				Name: pool.Name.ValueString(),
 				Machine: generated.OpenstackMachinePool{
+					Disk: &generated.OpenstackVolume{
+						Size: int(pool.Disk.ValueInt64()),
+					},
 					Replicas:   int(pool.Replicas.ValueInt64()),
 					FlavorName: pool.Flavor.ValueString(),
 					ImageName:  pool.Image.ValueString(),
@@ -122,6 +125,9 @@ func generateWorkloadNodePools(pools []workloadNodePoolModel) generated.Kubernet
 			workloadNodePools = append(workloadNodePools, generated.KubernetesClusterWorkloadPool{
 				Name: pool.Name.ValueString(),
 				Machine: generated.OpenstackMachinePool{
+					Disk: &generated.OpenstackVolume{
+						Size: int(pool.Disk.ValueInt64()),
+					},
 					Replicas:   int(pool.Replicas.ValueInt64()),
 					FlavorName: pool.Flavor.ValueString(),
 					ImageName:  pool.Image.ValueString(),
@@ -139,6 +145,7 @@ func generateWorkloadNodePoolModel(workloadpools generated.KubernetesClusterWork
 		if pool.Autoscaling != nil {
 			workloadPools = append(workloadPools, workloadNodePoolModel{
 				Name:     types.StringValue(pool.Name),
+				Disk:     types.Int64Value(int64(pool.Machine.Disk.Size)),
 				Flavor:   types.StringValue(pool.Machine.FlavorName),
 				Image:    types.StringValue(pool.Machine.ImageName),
 				Replicas: types.Int64Value(int64(pool.Machine.Replicas)),
@@ -151,6 +158,7 @@ func generateWorkloadNodePoolModel(workloadpools generated.KubernetesClusterWork
 		} else {
 			workloadPools = append(workloadPools, workloadNodePoolModel{
 				Name:     types.StringValue(pool.Name),
+				Disk:     types.Int64Value(int64(pool.Machine.Disk.Size)),
 				Flavor:   types.StringValue(pool.Machine.FlavorName),
 				Image:    types.StringValue(pool.Machine.ImageName),
 				Replicas: types.Int64Value(int64(pool.Machine.Replicas)),

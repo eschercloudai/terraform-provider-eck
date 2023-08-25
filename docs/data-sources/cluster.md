@@ -82,6 +82,7 @@ Read-Only:
 Read-Only:
 
 - `autoscaling` (Attributes) Configuration options for the autoscaler. (see [below for nested schema](#nestedatt--workloadnodepools--autoscaling))
+- `disk` (Number) Size of disk for the node.  Defaults to 50GiB.
 - `flavor` (String) OpenStack flavor (size) for nodes in this pool.
 - `image` (String) Operating system image to use.  Must be a valid and signed ECK image.
 - `name` (String) Name of the workload pool.

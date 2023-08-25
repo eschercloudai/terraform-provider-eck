@@ -61,6 +61,7 @@ type controlPlaneNodesModel struct {
 
 type workloadNodePoolModel struct {
 	Name        types.String      `tfsdk:"name"`
+	Disk        types.Int64       `tfsdk:"disk"`
 	Flavor      types.String      `tfsdk:"flavor"`
 	Image       types.String      `tfsdk:"image"`
 	Replicas    types.Int64       `tfsdk:"replicas"`
@@ -236,6 +237,10 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"name": schema.StringAttribute{
 							Computed:    true,
 							Description: "Name of the workload pool.",
+						},
+						"disk": schema.Int64Attribute{
+							Computed:    true,
+							Description: "Size of disk for the node.  Defaults to 50GiB.",
 						},
 						"flavor": schema.StringAttribute{
 							Computed:    true,
