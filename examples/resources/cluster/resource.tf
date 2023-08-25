@@ -44,13 +44,15 @@ resource "eck_cluster" "terraform" {
       minimum = 1
       maximum = 2
     }
+    },
     {
       name     = "gpu"
       replicas = 1
       image    = "eck-230714-4bef8ab1"
       version  = "v1.27.2"
       flavor   = "g.2.standard"
-  }]
+    }
+  ]
 }
 
 output "cluster_config" {

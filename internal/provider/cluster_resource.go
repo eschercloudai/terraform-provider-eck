@@ -67,42 +67,42 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"eckcp": schema.StringAttribute{
 				Description: "The associated ECK Control Plane for the cluster.",
-				Required: true,
+				Required:    true,
 			},
 			"applicationbundle": schema.StringAttribute{
 				Description: "The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.",
-				Required: true,
+				Required:    true,
 			},
 			"kubeconfig": schema.StringAttribute{
 				Description: "The kubeconfig for the cluster.",
-				Computed: true,
+				Computed:    true,
 			},
 			"status": schema.StringAttribute{
 				Description: "The provisioning status of the cluster.",
-				Computed: true,
+				Computed:    true,
 			},
 			"controlplane": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"disk": schema.Int64Attribute{
 						Description: "Whether to use a dedicated persistent volume for control plane nodes. It is recommended to leave this unchecked, as ephemeral storage provides higher performance for Kubernetes' etcd database. If left unset, the default ephemeral storage size of 20GB is used.",
-						Optional: true,
+						Optional:    true,
 					},
 					"flavor": schema.StringAttribute{
 						Description: "The flavor (size) of the machine.",
-						Required: true,
+						Required:    true,
 					},
 					"image": schema.StringAttribute{
 						Description: "Which OS image to use.  Must be a verified and signed ECK image",
-						Required: true,
+						Required:    true,
 					},
 					"replicas": schema.Int64Attribute{
 						Description: "How many replicas to provision in a control plane.  Must be an odd number, 3 is recommended.",
-						Required: true,
+						Required:    true,
 					},
 					"version": schema.StringAttribute{
 						Description: "The version of Kubernetes.  Must match the version bundled with the OS image.",
-						Required: true,
+						Required:    true,
 					},
 				},
 			},
@@ -116,15 +116,15 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					},
 					"nodeprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Nodes in the cluster.",
-						Optional: true,
+						Optional:    true,
 					},
 					"podprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Pods in the cluster.",
-						Optional: true,
+						Optional:    true,
 					},
 					"serviceprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Services in the cluster.",
-						Optional: true,
+						Optional:    true,
 					},
 				},
 			},
@@ -132,35 +132,54 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"computeaz": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-						Default:  stringdefault.StaticString("nova"),
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("nova"),
 						Description: "OpenStack Compute Availability Zone. Defaults to `nova`.",
 					},
 					"externalnetworkid": schema.StringAttribute{
 						Description: "UUID of the external network.",
-						Optional: true,
+						Optional:    true,
 					},
 					"sshkey": schema.StringAttribute{
 						Description: "SSH key associated with the instance.",
-						Optional: true,
+						Optional:    true,
 					},
 					"volumeaz": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-						Default:  stringdefault.StaticString("nova"),
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("nova"),
 						Description: "OpenStack Cinder Availability Zone. Defaults to `nova`.",
 					},
 				},
 			},
 			"clusterfeatures": schema.SingleNestedAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Extra features allowing management of additional Kubernetes features that are considered standard.",
 				Attributes: map[string]schema.Attribute{
 					"autoscaling": schema.BoolAttribute{
-						Optional: true,
-						Computed: true,
-						Default:  booldefault.StaticBool(false),
+						Optional:    true,
+						Computed:    true,
+						Default:     booldefault.StaticBool(false),
 						Description: "Enables Cluster Autoscaler, required for autoscaling workload pools.",
+					},
+					"ingress": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     booldefault.StaticBool(false),
+						Description: "Whether to deploy the NGINX Ingress Controller.",
+					},
+					"longhorn": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     booldefault.StaticBool(false),
+						Description: "Whether to enable Longhorn for persistent storage, which includes support for RWX.",
+					},
+					"prometheus": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     booldefault.StaticBool(false),
+						Description: "Whether to enable the Prometheus Operator for monitoring.",
 					},
 				},
 			},
@@ -170,34 +189,34 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Description: "Name of the workload pool.",
-							Required: true,
+							Required:    true,
 						},
 						"flavor": schema.StringAttribute{
 							Description: "OpenStack flavor (size) for nodes in this pool.",
-							Required: true,
+							Required:    true,
 						},
 						"image": schema.StringAttribute{
 							Description: "Operating system image to use.  Must be a valid and signed ECK image.",
-							Required: true,
+							Required:    true,
 						},
 						"replicas": schema.Int64Attribute{
 							Description: "How many replicas in this workload pool.",
-							Required: true,
+							Required:    true,
 						},
 						"version": schema.StringAttribute{
 							Optional: true,
 						},
 						"autoscaling": schema.SingleNestedAttribute{
 							Description: "Configuration options for the autoscaler.",
-							Optional: true,
+							Optional:    true,
 							Attributes: map[string]schema.Attribute{
 								"minimum": schema.Int64Attribute{
 									Description: "Minimum number of nodes in this pool.",
-									Required: true,
+									Required:    true,
 								},
 								"maximum": schema.Int64Attribute{
 									Description: "Maximum number of nodes in this pool.",
-									Required: true,
+									Required:    true,
 								},
 							},
 						},
