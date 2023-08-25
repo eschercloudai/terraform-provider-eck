@@ -46,6 +46,9 @@ type clusterModel struct {
 
 type clusterFeaturesModel struct {
 	Autoscaling types.Bool `tfsdk:"autoscaling"`
+	Ingress     types.Bool `tfsdk:"ingress"`
+	Longhorn    types.Bool `tfsdk:"longhorn"`
+	Prometheus  types.Bool `tfsdk:"prometheus"`
 }
 
 type controlPlaneNodesModel struct {
@@ -205,8 +208,24 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"autoscaling": schema.BoolAttribute{
+						Optional:    true,
 						Computed:    true,
 						Description: "Enables Cluster Autoscaler, required for autoscaling workload pools.",
+					},
+					"ingress": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "Whether to deploy the NGINX Ingress Controller.",
+					},
+					"longhorn": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "Whether to enable Longhorn for persistent storage, which includes support for RWX.",
+					},
+					"prometheus": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "Whether to enable the Prometheus Operator for monitoring.",
 					},
 				},
 			},

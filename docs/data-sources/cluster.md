@@ -34,9 +34,12 @@ description: |-
 <a id="nestedatt--clusterfeatures"></a>
 ### Nested Schema for `clusterfeatures`
 
-Read-Only:
+Optional:
 
 - `autoscaling` (Boolean) Enables Cluster Autoscaler, required for autoscaling workload pools.
+- `ingress` (Boolean) Whether to deploy the NGINX Ingress Controller.
+- `longhorn` (Boolean) Whether to enable Longhorn for persistent storage, which includes support for RWX.
+- `prometheus` (Boolean) Whether to enable the Prometheus Operator for monitoring.
 
 
 <a id="nestedatt--clusternetwork"></a>

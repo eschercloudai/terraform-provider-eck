@@ -53,6 +53,9 @@ func generateKubernetesCluster(ctx context.Context, plan clusterModel) generated
 		},
 		Features: &generated.KubernetesClusterFeatures{
 			Autoscaling: plan.ClusterFeatures.Autoscaling.ValueBoolPointer(),
+			Ingress:     plan.ClusterFeatures.Ingress.ValueBoolPointer(),
+			FileStorage: plan.ClusterFeatures.Longhorn.ValueBoolPointer(),
+			Prometheus:  plan.ClusterFeatures.Prometheus.ValueBoolPointer(),
 		},
 		WorkloadPools: workloadNodePools,
 	}
@@ -89,6 +92,9 @@ func generateClusterModel(ctx context.Context, cluster generated.KubernetesClust
 		},
 		ClusterFeatures: &clusterFeaturesModel{
 			Autoscaling: types.BoolValue(*cluster.Features.Autoscaling),
+			Longhorn:    types.BoolValue(*cluster.Features.FileStorage),
+			Ingress:     types.BoolValue(*cluster.Features.Ingress),
+			Prometheus:  types.BoolValue(*cluster.Features.Prometheus),
 		},
 		WorkloadNodePools: generateWorkloadNodePoolModel(cluster.WorkloadPools),
 	}
