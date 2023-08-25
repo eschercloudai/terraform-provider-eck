@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -190,6 +191,12 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						"name": schema.StringAttribute{
 							Description: "Name of the workload pool.",
 							Required:    true,
+						},
+						"disk": schema.Int64Attribute{
+							Computed:    true,
+							Optional:    true,
+							Description: "Size of disk for the node.  Defaults to 50GiB.",
+							Default:     int64default.StaticInt64(50),
 						},
 						"flavor": schema.StringAttribute{
 							Description: "OpenStack flavor (size) for nodes in this pool.",

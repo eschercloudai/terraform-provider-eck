@@ -95,6 +95,7 @@ Required:
 Optional:
 
 - `autoscaling` (Attributes) Configuration options for the autoscaler. (see [below for nested schema](#nestedatt--workloadnodepools--autoscaling))
+- `disk` (Number) Size of disk for the node.  Defaults to 50GiB.
 - `version` (String)
 
 <a id="nestedatt--workloadnodepools--autoscaling"></a>
