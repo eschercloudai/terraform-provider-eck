@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -299,15 +298,14 @@ func (d *clusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return
-	}
-
 	cluster := generated.KubernetesCluster{}
-	err = json.Unmarshal(body, &cluster)
+	err = json.NewDecoder(r.Body).Decode(&cluster)
 	if err != nil {
-		return
+		resp.Diagnostics.AddError(
+			"Unable to read cluster information",
+			"An error occurred while parsing the response from the ECK API."+
+				"JSON Error: "+err.Error(),
+		)
 	}
 
 	var kubeconfig string
