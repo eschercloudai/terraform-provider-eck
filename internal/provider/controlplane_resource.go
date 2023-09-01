@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/eschercloudai/eckctl/pkg/generated"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -72,7 +72,9 @@ func (r *controlPlaneResource) Schema(_ context.Context, _ resource.SchemaReques
 				Attributes: map[string]schema.Attribute{
 					"version": schema.StringAttribute{
 						Description: "The version of the ECK Control Plane.",
-						Required:    true,
+						Computed:    true,
+						Optional:    true,
+						Default:     stringdefault.StaticString("1.1.0"),
 					},
 					"autoupgrade": schema.BoolAttribute{
 						Description: "Whether automatic upgrades of the ECK Control Plane are enabled.",
@@ -177,15 +179,14 @@ func (r *controlPlaneResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	body, err := io.ReadAll(controlplanes.Body)
-	if err != nil {
-		return
-	}
-
 	controlPlane := generated.ControlPlane{}
-	err = json.Unmarshal(body, &controlPlane)
+	err = json.NewDecoder(controlplanes.Body).Decode(&controlPlane)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError(
+			"Unable to read control plane information",
+			"An error occurred while parsing the response from the ECK API."+
+				"JSON Error: "+err.Error(),
+		)
 	}
 
 	// Overwrite items with refreshed state
@@ -259,15 +260,14 @@ func (r *controlPlaneResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	body, err := io.ReadAll(controlplanes.Body)
-	if err != nil {
-		return
-	}
-
 	controlPlane := generated.ControlPlane{}
-	err = json.Unmarshal(body, &controlPlane)
+	err = json.NewDecoder(controlplanes.Body).Decode(&controlPlane)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError(
+			"Unable to read control plane information",
+			"An error occurred while parsing the response from the ECK API."+
+				"JSON Error: "+err.Error(),
+		)
 	}
 
 	// Map response body to schema and populate Computed attribute values

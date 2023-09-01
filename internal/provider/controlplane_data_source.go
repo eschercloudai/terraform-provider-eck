@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -123,17 +122,14 @@ func (d *controlPlaneDataSource) Read(ctx context.Context, req datasource.ReadRe
 		fmt.Printf("Error retrieving control plane information, %v", r.StatusCode)
 		return
 	}
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return
-	}
-
 	controlPlanes := generated.ControlPlanes{}
-
-	err = json.Unmarshal(body, &controlPlanes)
+	err = json.NewDecoder(r.Body).Decode(&controlPlanes)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError(
+			"Unable to read control plane information",
+			"An error occurred while parsing the response from the ECK API."+
+				"JSON Error: "+err.Error(),
+		)
 	}
 
 	// Map response body to model
