@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"net/http"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/eschercloudai/eckctl/pkg/generated"
@@ -114,18 +118,42 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Description: "A list of DNS nameservers used by the OS.",
 						ElementType: types.StringType,
 						Optional:    true,
+						Validators: []validator.List{
+							listvalidator.ValueStringsAre(stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])$`),
+								"Must be a valid CIDR-formatted range",
+							)),
+						},
 					},
 					"nodeprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Nodes in the cluster.",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\/(?:3[0-2]|[1-2]?[0-9])$`),
+								"Must be a valid CIDR-formatted range",
+							),
+						},
 					},
 					"podprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Pods in the cluster.",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\/(?:3[0-2]|[1-2]?[0-9])$`),
+								"Must be a valid CIDR-formatted range",
+							),
+						},
 					},
 					"serviceprefix": schema.StringAttribute{
 						Description: "The CIDR-formatted IP address range to be used by Services in the cluster.",
 						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\/(?:3[0-2]|[1-2]?[0-9])$`),
+								"Must be a valid CIDR-formatted range",
+							),
+						},
 					},
 				},
 			},
@@ -248,7 +276,13 @@ func (r *clusterResource) Create(ctx context.Context, req resource.CreateRequest
 	cluster := generateKubernetesCluster(ctx, plan)
 
 	// Create new cluster
-	_, err := r.client.PostApiV1ControlplanesControlPlaneNameClusters(ctx, plan.EckCp.ValueString(), cluster)
+	ur, err := r.client.PostApiV1ControlplanesControlPlaneNameClusters(ctx, plan.EckCp.ValueString(), cluster)
+	if ur.StatusCode != http.StatusAccepted {
+		resp.Diagnostics.AddError(
+			"Error creating cluster",
+			"Could not create cluster, unexpected response from ECK API: "+ur.Status,
+		)
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster",
@@ -296,31 +330,27 @@ func (r *clusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	body, err := io.ReadAll(kubernetesCluster.Body)
-	if err != nil {
-		return
-	}
-
 	cluster := generated.KubernetesCluster{}
-	err = json.Unmarshal(body, &cluster)
+	err = json.NewDecoder(kubernetesCluster.Body).Decode(&cluster)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError(
+			"Unable to read cluster information",
+			"An error occurred while parsing the response from the ECK API."+
+				"JSON Error: "+err.Error(),
+		)
 	}
 
-	var kubeconfig string
-	if cluster.Status.Status == "Provisioned" {
-		kubeconfig = getKubeconfig(*r.client, ctx, state.EckCp.ValueString(), cluster.Name)
-	} else {
-		kubeconfig = ""
-	}
+	if cluster.Status != nil {
+		var kubeconfig string
+		if cluster.Status.Status == "Provisioned" {
+			kubeconfig = getKubeconfig(*r.client, ctx, state.EckCp.ValueString(), cluster.Name)
+		} else {
+			kubeconfig = ""
+		}
 
-	// Refresh cluster details
-	// Overwrite items with refreshed state
-	state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), kubeconfig)
-
-	var controlPlane controlPlaneNodesModel
-	if state.ControlPlane.Disk != types.Int64Value(0) {
-		controlPlane.Disk = state.ControlPlane.Disk
+		// Refresh cluster details
+		// Overwrite items with refreshed state
+		state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), kubeconfig)
 	}
 
 	// Set refreshed state
@@ -332,8 +362,8 @@ func (r *clusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 		)
 		return
 	}
-}
 
+}
 func (r *clusterResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	tflog.Info(ctx, "🦄 Update")
 	// Retrieve values from plan
