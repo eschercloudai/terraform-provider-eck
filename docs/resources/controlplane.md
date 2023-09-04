@@ -25,5 +25,8 @@ description: |-
 
 Required:
 
-- `autoupgrade` (Boolean) Whether automatic upgrades of the ECK Control Plane are enabled.
-- `version` (String) The version of the ECK Control Plane.
+- `autoupgrade` (Boolean) Whether automatic upgrades of the ECK Control Plane are enabled. If enabled, perform upgrades randomly from Monday-Friday 00:00-07:00 UTC.
+
+Optional:
+
+- `version` (String) The version of the ECK Control Plane. Defaults to 1.1.0.
