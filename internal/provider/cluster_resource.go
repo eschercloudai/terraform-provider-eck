@@ -121,7 +121,7 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Validators: []validator.List{
 							listvalidator.ValueStringsAre(stringvalidator.RegexMatches(
 								regexp.MustCompile(`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])$`),
-								"Must be a valid CIDR-formatted range",
+								"Must be a valid IP address",
 							)),
 						},
 					},
