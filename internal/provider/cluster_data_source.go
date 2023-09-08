@@ -63,6 +63,7 @@ type workloadNodePoolModel struct {
 	Disk        types.Int64       `tfsdk:"disk"`
 	Flavor      types.String      `tfsdk:"flavor"`
 	Image       types.String      `tfsdk:"image"`
+	Labels      types.Map         `tfsdk:"labels"`
 	Replicas    types.Int64       `tfsdk:"replicas"`
 	Autoscaling *autoscalingModel `tfsdk:"autoscaling"`
 	Version     types.String      `tfsdk:"version"`
@@ -248,6 +249,11 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"image": schema.StringAttribute{
 							Computed:    true,
 							Description: "Operating system image to use.  Must be a valid and signed ECK image.",
+						},
+						"labels": schema.MapAttribute{
+							ElementType: types.StringType,
+							Computed:    true,
+							Description: "A map of Kubernetes labels to be applied to each node in the pool.",
 						},
 						"replicas": schema.Int64Attribute{
 							Computed:    true,
