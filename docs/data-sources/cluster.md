@@ -79,6 +79,10 @@ Read-Only:
 <a id="nestedatt--workloadnodepools"></a>
 ### Nested Schema for `workloadnodepools`
 
+Optional:
+
+- `labels` (Map of String) A map of Kubernetes labels to be applied to each node in the pool.
+
 Read-Only:
 
 - `autoscaling` (Attributes) Configuration options for the autoscaler. (see [below for nested schema](#nestedatt--workloadnodepools--autoscaling))

@@ -96,6 +96,7 @@ Optional:
 
 - `autoscaling` (Attributes) Configuration options for the autoscaler. (see [below for nested schema](#nestedatt--workloadnodepools--autoscaling))
 - `disk` (Number) Size of disk for the node.  Defaults to 50GiB.
+- `labels` (Map of String) A map of Kubernetes labels to be applied to each node in the pool.
 - `version` (String)
 
 <a id="nestedatt--workloadnodepools--autoscaling"></a>
