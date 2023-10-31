@@ -237,7 +237,6 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						"labels": schema.MapAttribute{
 							ElementType: types.StringType,
 							Optional:    true,
-							Computed:    true,
 							Description: "A map of Kubernetes labels to be applied to each node in the pool.",
 						},
 						"replicas": schema.Int64Attribute{

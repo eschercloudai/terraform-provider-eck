@@ -142,7 +142,9 @@ func generateWorkloadNodePools(ctx context.Context, pools []workloadNodePoolMode
 		}
 		if !pool.Labels.IsNull() {
 			labels, _ := tfMapToStringMap(ctx, pool.Labels)
-			workloadNodePool.Labels = labels
+			if labels != nil && len(*labels) != 0 {
+				workloadNodePool.Labels = labels
+			}
 		}
 		workloadNodePools = append(workloadNodePools, workloadNodePool)
 	}
@@ -152,7 +154,6 @@ func generateWorkloadNodePools(ctx context.Context, pools []workloadNodePoolMode
 // Render cluster workloadpool representation for Terraform state
 func generateWorkloadNodePoolModel(ctx context.Context, workloadpools generated.KubernetesClusterWorkloadPools) []workloadNodePoolModel {
 	var workloadPools []workloadNodePoolModel
-	var labels basetypes.MapValue
 	for _, pool := range workloadpools {
 		workloadPool := workloadNodePoolModel{
 			Name:     types.StringValue(pool.Name),
@@ -168,9 +169,10 @@ func generateWorkloadNodePoolModel(ctx context.Context, workloadpools generated.
 				MaximumReplicas: types.Int64Value(int64(pool.Autoscaling.MaximumReplicas)),
 			}
 		}
-		if pool.Labels != nil {
-			labels, _ = types.MapValueFrom(ctx, types.StringType, pool.Labels)
-			workloadPool.Labels = labels
+		if pool.Labels != nil && len(*pool.Labels) != 0 {
+			workloadPool.Labels, _ = types.MapValueFrom(ctx, types.StringType, pool.Labels)
+		} else {
+			workloadPool.Labels = types.MapNull(types.StringType)
 		}
 		workloadPools = append(workloadPools, workloadPool)
 	}
