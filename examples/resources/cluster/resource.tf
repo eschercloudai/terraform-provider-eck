@@ -7,55 +7,55 @@ terraform {
 }
 
 provider "eck" {
-  host     = "https://eck.nl1.eschercloud.dev"
-  username = "n.jones@eschercloud.ai"
-  project  = "abc123"
+  host     = "https://eck.startwell.eschercloud.dev"
+  username = "nick"
+  project  = "7612aafcbd454530b1d03d60038fe824"
 }
 
-resource "eck_cluster" "terraform" {
-  name              = "terraform"
+resource "eck_cluster" "terratest" {
+  name              = "terratest"
   eckcp             = "default"
-  applicationbundle = "kubernetes-cluster-1.3.1"
+  applicationbundle = "kubernetes-cluster-1.4.0"
   clusternetwork = {
     dnsnameservers = ["1.1.1.1", "1.0.0.1"]
-    nodeprefix     = "192.168.0.0/16"
-    serviceprefix  = "172.16.0.0/12"
-    podprefix      = "10.0.0.0/8"
+    nodeprefix     = "172.16.0.0/16"
+    serviceprefix  = "10.42.0.0/16"
+    podprefix      = "10.43.0.0/16"
   }
   clusteropenstack = {
-    externalnetworkid = "c9d130bc-301d-45c0-9328-a6964af65579"
+    externalnetworkid = "70bb46a1-4d43-485d-9dbc-4aa979990327"
   }
   controlplane = {
-    flavor   = "g.2.standard"
-    image    = "eck-230714-4bef8ab1"
-    replicas = 3
-    version  = "v1.27.2"
+    flavor   = "m1.large"
+    image    = "eck-231023-a16c4645"
+    replicas = 1
+    version  = "v1.28.3"
   }
   clusterfeatures = {
-    autoscaling = true
+    autoscaling = false
   }
-  workloadnodepools = [{
-    name     = "cpu"
-    replicas = 3
-    image    = "eck-230714-4bef8ab1"
-    version  = "v1.27.2"
-    flavor   = "g.2.standard"
-    autoscaling = {
-      minimum = 1
-      maximum = 2
-    }
+  workloadnodepools = [
+    {
+      name     = "cpu"
+      replicas = 1
+      image    = "eck-231023-a16c4645"
+      version  = "v1.28.3"
+      flavor   = "m1.large"
     },
     {
       name     = "gpu"
       replicas = 1
-      image    = "eck-230714-4bef8ab1"
-      version  = "v1.27.2"
-      flavor   = "g.2.standard"
+      image    = "eck-231023-a16c4645"
+      version  = "v1.28.3"
+      flavor   = "g1.medium.1xa100"
+      labels = {
+        gpu = "1xa100"
+      }
     }
   ]
 }
 
 output "cluster_config" {
-  value = eck_cluster.conformance.kubeconfig
+  value = eck_cluster.terratest.kubeconfig
 }
 
