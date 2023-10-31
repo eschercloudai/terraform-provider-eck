@@ -206,8 +206,8 @@ func (p *eckProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	}
 
 	// Create a new ECK client using the configuration values
-	token, err := auth.GetToken(host, username, password, project)
-	client, _ := auth.NewClient(host, token)
+	token, err := auth.GetToken(host, username, password, project, false)
+	client, _ := auth.NewClient(host, token, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create ECK API Client",

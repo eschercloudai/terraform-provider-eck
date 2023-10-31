@@ -234,6 +234,12 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 							Description: "Operating system image to use.  Must be a valid and signed ECK image.",
 							Required:    true,
 						},
+						"labels": schema.MapAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+							Computed:    true,
+							Description: "A map of Kubernetes labels to be applied to each node in the pool.",
+						},
 						"replicas": schema.Int64Attribute{
 							Description: "How many replicas in this workload pool.",
 							Required:    true,
@@ -378,7 +384,7 @@ func (r *clusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	cluster := generateKubernetesCluster(ctx, plan)
 
 	// Create new cluster
-	_, err := r.client.PutApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, "tftest", plan.Name.ValueString(), cluster)
+	_, err := r.client.PutApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, plan.EckCp.ValueString(), plan.Name.ValueString(), cluster)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating cluster",

@@ -6,6 +6,7 @@ import (
 
 	"github.com/eschercloudai/eckctl/pkg/generated"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func getKubeconfig(client generated.ClientWithResponses, ctx context.Context, eckcp string, cluster string) string {
@@ -20,10 +21,27 @@ func getKubeconfig(client generated.ClientWithResponses, ctx context.Context, ec
 	return string(kc)
 }
 
+func tfMapToStringMap(ctx context.Context, value basetypes.MapValue) (*map[string]string, error) {
+	mapVal := map[string]string{}
+	mapValue, _ := value.ToMapValue(ctx)
+
+	for k, v := range mapValue.Elements() {
+		value, _ := v.ToTerraformValue(ctx)
+		var stringValue string
+		err := value.As(&stringValue)
+		if err != nil {
+			return nil, err
+		}
+		mapVal[k] = stringValue
+	}
+
+	return &mapVal, nil
+}
+
 func generateKubernetesCluster(ctx context.Context, plan clusterModel) generated.KubernetesCluster {
 	var dnsNameservers []string
 	plan.ClusterNetwork.DnsNameservers.ElementsAs(ctx, &dnsNameservers, false)
-	workloadNodePools := generateWorkloadNodePools(plan.WorkloadNodePools)
+	workloadNodePools := generateWorkloadNodePools(ctx, plan.WorkloadNodePools)
 	cluster := generated.KubernetesCluster{
 		Name: plan.Name.ValueString(),
 		Status: &generated.KubernetesResourceStatus{
@@ -96,75 +114,65 @@ func generateClusterModel(ctx context.Context, cluster generated.KubernetesClust
 			Ingress:     types.BoolValue(*cluster.Features.Ingress),
 			Prometheus:  types.BoolValue(*cluster.Features.Prometheus),
 		},
-		WorkloadNodePools: generateWorkloadNodePoolModel(cluster.WorkloadPools),
+		WorkloadNodePools: generateWorkloadNodePoolModel(ctx, cluster.WorkloadPools),
 	}
 	return clusterModel
 }
 
-func generateWorkloadNodePools(pools []workloadNodePoolModel) generated.KubernetesClusterWorkloadPools {
+func generateWorkloadNodePools(ctx context.Context, pools []workloadNodePoolModel) generated.KubernetesClusterWorkloadPools {
 	var workloadNodePools generated.KubernetesClusterWorkloadPools
 	for _, pool := range pools {
-		if pool.Autoscaling != nil {
-			workloadNodePools = append(workloadNodePools, generated.KubernetesClusterWorkloadPool{
-				Name: pool.Name.ValueString(),
-				Machine: generated.OpenstackMachinePool{
-					Disk: &generated.OpenstackVolume{
-						Size: int(pool.Disk.ValueInt64()),
-					},
-					Replicas:   int(pool.Replicas.ValueInt64()),
-					FlavorName: pool.Flavor.ValueString(),
-					ImageName:  pool.Image.ValueString(),
-					Version:    pool.Version.ValueString(),
+		workloadNodePool := generated.KubernetesClusterWorkloadPool{
+			Name: pool.Name.ValueString(),
+			Machine: generated.OpenstackMachinePool{
+				Disk: &generated.OpenstackVolume{
+					Size: int(pool.Disk.ValueInt64()),
 				},
-				Autoscaling: &generated.KubernetesClusterAutoscaling{
-					MinimumReplicas: int(pool.Autoscaling.MinimumReplicas.ValueInt64()),
-					MaximumReplicas: int(pool.Autoscaling.MaximumReplicas.ValueInt64()),
-				},
-			})
-		} else {
-			workloadNodePools = append(workloadNodePools, generated.KubernetesClusterWorkloadPool{
-				Name: pool.Name.ValueString(),
-				Machine: generated.OpenstackMachinePool{
-					Disk: &generated.OpenstackVolume{
-						Size: int(pool.Disk.ValueInt64()),
-					},
-					Replicas:   int(pool.Replicas.ValueInt64()),
-					FlavorName: pool.Flavor.ValueString(),
-					ImageName:  pool.Image.ValueString(),
-					Version:    pool.Version.ValueString(),
-				},
-			})
+				FlavorName: pool.Flavor.ValueString(),
+				ImageName:  pool.Image.ValueString(),
+				Replicas:   int(pool.Replicas.ValueInt64()),
+				Version:    pool.Version.ValueString(),
+			},
 		}
+		if pool.Autoscaling != nil {
+			workloadNodePool.Autoscaling = &generated.KubernetesClusterAutoscaling{
+				MinimumReplicas: int(pool.Autoscaling.MinimumReplicas.ValueInt64()),
+				MaximumReplicas: int(pool.Autoscaling.MaximumReplicas.ValueInt64()),
+			}
+		}
+		if !pool.Labels.IsNull() {
+			labels, _ := tfMapToStringMap(ctx, pool.Labels)
+			workloadNodePool.Labels = labels
+		}
+		workloadNodePools = append(workloadNodePools, workloadNodePool)
 	}
 	return workloadNodePools
 }
 
-func generateWorkloadNodePoolModel(workloadpools generated.KubernetesClusterWorkloadPools) []workloadNodePoolModel {
+// Render cluster workloadpool representation for Terraform state
+func generateWorkloadNodePoolModel(ctx context.Context, workloadpools generated.KubernetesClusterWorkloadPools) []workloadNodePoolModel {
 	var workloadPools []workloadNodePoolModel
+	var labels basetypes.MapValue
 	for _, pool := range workloadpools {
-		if pool.Autoscaling != nil {
-			workloadPools = append(workloadPools, workloadNodePoolModel{
-				Name:     types.StringValue(pool.Name),
-				Disk:     types.Int64Value(int64(pool.Machine.Disk.Size)),
-				Flavor:   types.StringValue(pool.Machine.FlavorName),
-				Image:    types.StringValue(pool.Machine.ImageName),
-				Replicas: types.Int64Value(int64(pool.Machine.Replicas)),
-				Version:  types.StringValue(pool.Machine.Version),
-				Autoscaling: &autoscalingModel{
-					MinimumReplicas: types.Int64Value(int64(pool.Autoscaling.MinimumReplicas)),
-					MaximumReplicas: types.Int64Value(int64(pool.Autoscaling.MaximumReplicas)),
-				},
-			})
-		} else {
-			workloadPools = append(workloadPools, workloadNodePoolModel{
-				Name:     types.StringValue(pool.Name),
-				Disk:     types.Int64Value(int64(pool.Machine.Disk.Size)),
-				Flavor:   types.StringValue(pool.Machine.FlavorName),
-				Image:    types.StringValue(pool.Machine.ImageName),
-				Replicas: types.Int64Value(int64(pool.Machine.Replicas)),
-				Version:  types.StringValue(pool.Machine.Version),
-			})
+		workloadPool := workloadNodePoolModel{
+			Name:     types.StringValue(pool.Name),
+			Disk:     types.Int64Value(int64(pool.Machine.Disk.Size)),
+			Flavor:   types.StringValue(pool.Machine.FlavorName),
+			Image:    types.StringValue(pool.Machine.ImageName),
+			Replicas: types.Int64Value(int64(pool.Machine.Replicas)),
+			Version:  types.StringValue(pool.Machine.Version),
 		}
+		if pool.Autoscaling != nil {
+			workloadPool.Autoscaling = &autoscalingModel{
+				MinimumReplicas: types.Int64Value(int64(pool.Autoscaling.MinimumReplicas)),
+				MaximumReplicas: types.Int64Value(int64(pool.Autoscaling.MaximumReplicas)),
+			}
+		}
+		if pool.Labels != nil {
+			labels, _ = types.MapValueFrom(ctx, types.StringType, pool.Labels)
+			workloadPool.Labels = labels
+		}
+		workloadPools = append(workloadPools, workloadPool)
 	}
 	return workloadPools
 }
