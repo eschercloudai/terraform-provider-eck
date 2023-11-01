@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -87,6 +89,12 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"status": schema.StringAttribute{
 				Description: "The provisioning status of the cluster.",
 				Computed:    true,
+			},
+			"wait": schema.BoolAttribute{
+				Description: "Whether to wait for the cluster to be provisioned",
+				Computed:    true,
+				Optional:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"controlplane": schema.SingleNestedAttribute{
 				Required: true,
@@ -275,11 +283,42 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 	}
 }
 
+func waitForResourceToBeReady(ctx context.Context, client *generated.ClientWithResponses, cp string, cn string) error {
+	timeout := time.After(10 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	var cluster generated.KubernetesCluster
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("operation was canceled")
+		case <-timeout:
+			return fmt.Errorf("timed out waiting for resource to be ready")
+		case <-ticker.C:
+			resp, _ := client.GetApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, cp, cn)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(body, &cluster)
+			if err != nil {
+				return err
+			}
+			if cluster.Status.Status == "Provisioned" {
+				return nil
+			}
+		}
+	}
+}
+
 // Create a new resource.
 func (r *clusterResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	tflog.Info(ctx, "🦄 Create")
 	// Retrieve values from plan
 	var plan clusterModel
+	var kubeconfig string
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -304,18 +343,28 @@ func (r *clusterResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	var kubeconfig string
+	// Optionally poll for the status
+	if plan.Wait == types.BoolValue(true) {
+		err = waitForResourceToBeReady(ctx, r.client, plan.EckCp.ValueString(), plan.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Waiting for Resource to be Ready",
+				err.Error(),
+			)
+			return
+		}
+		kubeconfig = getKubeconfig(*r.client, ctx, plan.EckCp.ValueString(), cluster.Name)
+	}
+
 	if cluster.Status.Status == "Provisioned" {
 		kubeconfig = getKubeconfig(*r.client, ctx, plan.EckCp.ValueString(), cluster.Name)
-	} else {
-		kubeconfig = ""
 	}
 
 	// Refresh cluster details
-	plan = generateClusterModel(ctx, cluster, plan.EckCp.ValueString(), kubeconfig)
+	plan = generateClusterModel(ctx, cluster, plan.EckCp.ValueString(), kubeconfig, plan.Wait.ValueBool())
 
 	// Set state to fully populated data
-	diags = resp.State.Set(ctx, plan)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -363,7 +412,7 @@ func (r *clusterResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 		// Refresh cluster details
 		// Overwrite items with refreshed state
-		state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), kubeconfig)
+		state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), kubeconfig, state.Wait.ValueBool())
 	}
 
 	// Set refreshed state
@@ -408,7 +457,7 @@ func (r *clusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Refresh cluster details
-	plan = generateClusterModel(ctx, cluster, plan.EckCp.ValueString(), kubeconfig)
+	plan = generateClusterModel(ctx, cluster, plan.EckCp.ValueString(), kubeconfig, plan.Wait.ValueBool())
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)

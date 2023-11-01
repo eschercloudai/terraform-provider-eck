@@ -25,6 +25,7 @@ description: |-
 
 - `clusterfeatures` (Attributes) Extra features allowing management of additional Kubernetes features that are considered standard. (see [below for nested schema](#nestedatt--clusterfeatures))
 - `clusteropenstack` (Attributes) (see [below for nested schema](#nestedatt--clusteropenstack))
+- `wait` (Boolean) Whether to wait for the cluster to be provisioned
 - `workloadnodepools` (Attributes List) (see [below for nested schema](#nestedatt--workloadnodepools))
 
 ### Read-Only
