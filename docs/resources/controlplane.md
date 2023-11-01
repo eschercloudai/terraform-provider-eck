@@ -29,4 +29,4 @@ Required:
 
 Optional:
 
-- `version` (String) The version of the ECK Control Plane. Defaults to 1.1.0.
+- `version` (String) The version of the ECK Control Plane. Defaults to 1.4.0.

@@ -17,10 +17,8 @@ description: |-
 
 ### Required
 
-- `applicationbundle` (String) The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.
 - `clusternetwork` (Attributes) (see [below for nested schema](#nestedatt--clusternetwork))
 - `controlplane` (Attributes) (see [below for nested schema](#nestedatt--controlplane))
-- `eckcp` (String) The associated ECK Control Plane for the cluster.
 - `name` (String) The name of the ECK cluster.
 
 ### Optional
@@ -31,6 +29,8 @@ description: |-
 
 ### Read-Only
 
+- `applicationbundle` (String) The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.
+- `eckcp` (String) The associated ECK Control Plane for the cluster.
 - `kubeconfig` (String) The kubeconfig for the cluster.
 - `status` (String) The provisioning status of the cluster.
 
@@ -66,7 +66,8 @@ Optional:
 Optional:
 
 - `autoscaling` (Boolean) Enables Cluster Autoscaler, required for autoscaling workload pools.
-- `ingress` (Boolean) Whether to deploy the NGINX Ingress Controller.
+- `dashboard` (Boolean) Whether to enable the Kubernetes Dashboard.
+- `ingress` (Boolean) Whether to deploy an Ingress Controller (NGINX).
 - `longhorn` (Boolean) Whether to enable Longhorn for persistent storage, which includes support for RWX.
 - `prometheus` (Boolean) Whether to enable the Prometheus Operator for monitoring.
 

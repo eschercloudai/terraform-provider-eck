@@ -37,6 +37,7 @@ description: |-
 Optional:
 
 - `autoscaling` (Boolean) Enables Cluster Autoscaler, required for autoscaling workload pools.
+- `dashboard` (Boolean) Whether to enable the Kubernetes Dashboard.
 - `ingress` (Boolean) Whether to deploy the NGINX Ingress Controller.
 - `longhorn` (Boolean) Whether to enable Longhorn for persistent storage, which includes support for RWX.
 - `prometheus` (Boolean) Whether to enable the Prometheus Operator for monitoring.
