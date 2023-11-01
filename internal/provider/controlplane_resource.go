@@ -71,10 +71,10 @@ func (r *controlPlaneResource) Schema(_ context.Context, _ resource.SchemaReques
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"version": schema.StringAttribute{
-						Description: "The version of the ECK Control Plane. Defaults to 1.1.0.",
+						Description: "The version of the ECK Control Plane. Defaults to 1.4.0.",
 						Computed:    true,
 						Optional:    true,
-						Default:     stringdefault.StaticString("1.1.0"),
+						Default:     stringdefault.StaticString("1.4.0"),
 					},
 					"autoupgrade": schema.BoolAttribute{
 						Description: "Whether automatic upgrades of the ECK Control Plane are enabled. If enabled, perform upgrades randomly from Monday-Friday 00:00-07:00 UTC.",
