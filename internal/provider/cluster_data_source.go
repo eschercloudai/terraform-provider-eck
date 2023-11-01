@@ -48,6 +48,7 @@ type clusterFeaturesModel struct {
 	Ingress     types.Bool `tfsdk:"ingress"`
 	Longhorn    types.Bool `tfsdk:"longhorn"`
 	Prometheus  types.Bool `tfsdk:"prometheus"`
+	Dashboard   types.Bool `tfsdk:"dashboard"`
 }
 
 type controlPlaneNodesModel struct {
@@ -227,6 +228,11 @@ func (d *clusterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						Optional:    true,
 						Computed:    true,
 						Description: "Whether to enable the Prometheus Operator for monitoring.",
+					},
+					"dashboard": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "Whether to enable the Kubernetes Dashboard.",
 					},
 				},
 			},

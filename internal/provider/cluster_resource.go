@@ -72,11 +72,13 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"eckcp": schema.StringAttribute{
 				Description: "The associated ECK Control Plane for the cluster.",
-				Required:    true,
+				Default:     stringdefault.StaticString("default"),
+				Computed:    true,
 			},
 			"applicationbundle": schema.StringAttribute{
 				Description: "The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.",
-				Required:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("kubernetes-cluster-1.4.0"),
 			},
 			"kubeconfig": schema.StringAttribute{
 				Description: "The kubeconfig for the cluster.",
@@ -196,7 +198,7 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Optional:    true,
 						Computed:    true,
 						Default:     booldefault.StaticBool(false),
-						Description: "Whether to deploy the NGINX Ingress Controller.",
+						Description: "Whether to deploy an Ingress Controller (NGINX).",
 					},
 					"longhorn": schema.BoolAttribute{
 						Optional:    true,
@@ -209,6 +211,12 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 						Computed:    true,
 						Default:     booldefault.StaticBool(false),
 						Description: "Whether to enable the Prometheus Operator for monitoring.",
+					},
+					"dashboard": schema.BoolAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     booldefault.StaticBool(false),
+						Description: "Whether to enable the Kubernetes Dashboard.",
 					},
 				},
 			},

@@ -70,10 +70,11 @@ func generateKubernetesCluster(ctx context.Context, plan clusterModel) generated
 			SshKeyName:              plan.ClusterOpenstack.SshKeyName.ValueStringPointer(),
 		},
 		Features: &generated.KubernetesClusterFeatures{
-			Autoscaling: plan.ClusterFeatures.Autoscaling.ValueBoolPointer(),
-			Ingress:     plan.ClusterFeatures.Ingress.ValueBoolPointer(),
-			FileStorage: plan.ClusterFeatures.Longhorn.ValueBoolPointer(),
-			Prometheus:  plan.ClusterFeatures.Prometheus.ValueBoolPointer(),
+			Autoscaling:         plan.ClusterFeatures.Autoscaling.ValueBoolPointer(),
+			Ingress:             plan.ClusterFeatures.Ingress.ValueBoolPointer(),
+			FileStorage:         plan.ClusterFeatures.Longhorn.ValueBoolPointer(),
+			Prometheus:          plan.ClusterFeatures.Prometheus.ValueBoolPointer(),
+			KubernetesDashboard: plan.ClusterFeatures.Dashboard.ValueBoolPointer(),
 		},
 		WorkloadPools: workloadNodePools,
 	}
@@ -113,6 +114,7 @@ func generateClusterModel(ctx context.Context, cluster generated.KubernetesClust
 			Longhorn:    types.BoolValue(*cluster.Features.FileStorage),
 			Ingress:     types.BoolValue(*cluster.Features.Ingress),
 			Prometheus:  types.BoolValue(*cluster.Features.Prometheus),
+			Dashboard:   types.BoolValue(*cluster.Features.KubernetesDashboard),
 		},
 		WorkloadNodePools: generateWorkloadNodePoolModel(ctx, cluster.WorkloadPools),
 	}
