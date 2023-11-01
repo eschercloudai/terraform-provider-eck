@@ -40,6 +40,7 @@ type clusterModel struct {
 	Kubeconfig        types.String            `tfsdk:"kubeconfig"`
 	Name              types.String            `tfsdk:"name"`
 	Status            types.String            `tfsdk:"status"`
+	Wait              types.Bool              `tfsdk:"wait"`
 	WorkloadNodePools []workloadNodePoolModel `tfsdk:"workloadnodepools"`
 }
 
@@ -329,7 +330,7 @@ func (d *clusterDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Map response body to model
-	state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), string(kubeconfig))
+	state = generateClusterModel(ctx, cluster, state.EckCp.ValueString(), string(kubeconfig), state.Wait.ValueBool())
 
 	// Set state
 	diags := resp.State.Set(ctx, &state)

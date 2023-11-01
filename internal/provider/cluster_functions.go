@@ -83,7 +83,7 @@ func generateKubernetesCluster(ctx context.Context, plan clusterModel) generated
 
 }
 
-func generateClusterModel(ctx context.Context, cluster generated.KubernetesCluster, eckcp string, kubeconfig string) clusterModel {
+func generateClusterModel(ctx context.Context, cluster generated.KubernetesCluster, eckcp string, kubeconfig string, wait bool) clusterModel {
 	ns, _ := types.ListValueFrom(ctx, types.StringType, cluster.Network.DnsNameservers)
 	clusterModel := clusterModel{
 		Name:              types.StringValue(cluster.Name),
@@ -91,6 +91,7 @@ func generateClusterModel(ctx context.Context, cluster generated.KubernetesClust
 		Status:            types.StringValue(cluster.Status.Status),
 		EckCp:             types.StringValue(eckcp),
 		Kubeconfig:        types.StringValue(kubeconfig),
+		Wait:              types.BoolValue(wait),
 		ControlPlane: &controlPlaneNodesModel{
 			Flavor:   types.StringValue(cluster.ControlPlane.FlavorName),
 			Image:    types.StringValue(cluster.ControlPlane.ImageName),
