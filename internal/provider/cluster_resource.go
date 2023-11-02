@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -76,15 +78,20 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "The associated ECK Control Plane for the cluster.",
 				Default:     stringdefault.StaticString("default"),
 				Computed:    true,
+				Optional:    true,
 			},
 			"applicationbundle": schema.StringAttribute{
 				Description: "The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.",
 				Computed:    true,
+				Optional:    true,
 				Default:     stringdefault.StaticString("kubernetes-cluster-1.4.0"),
 			},
 			"kubeconfig": schema.StringAttribute{
 				Description: "The kubeconfig for the cluster.",
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"status": schema.StringAttribute{
 				Description: "The provisioning status of the cluster.",
@@ -297,7 +304,13 @@ func waitForResourceToBeReady(ctx context.Context, client *generated.ClientWithR
 		case <-timeout:
 			return fmt.Errorf("timed out waiting for resource to be ready")
 		case <-ticker.C:
-			resp, _ := client.GetApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, cp, cn)
+			resp, err := client.GetApiV1ControlplanesControlPlaneNameClustersClusterName(ctx, cp, cn)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode != http.StatusOK {
+				return fmt.Errorf("%v", resp.StatusCode)
+			}
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return err
@@ -430,6 +443,7 @@ func (r *clusterResource) Update(ctx context.Context, req resource.UpdateRequest
 	tflog.Info(ctx, "🦄 Update")
 	// Retrieve values from plan
 	var plan clusterModel
+	var kubeconfig string
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -449,11 +463,21 @@ func (r *clusterResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	var kubeconfig string
+	// Optionally poll for the status
+	if plan.Wait == types.BoolValue(true) {
+		err = waitForResourceToBeReady(ctx, r.client, plan.EckCp.ValueString(), plan.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Waiting for Resource to be Ready",
+				err.Error(),
+			)
+			return
+		}
+		kubeconfig = getKubeconfig(*r.client, ctx, plan.EckCp.ValueString(), cluster.Name)
+	}
+
 	if cluster.Status.Status == "Provisioned" {
 		kubeconfig = getKubeconfig(*r.client, ctx, plan.EckCp.ValueString(), cluster.Name)
-	} else {
-		kubeconfig = ""
 	}
 
 	// Refresh cluster details

@@ -23,15 +23,15 @@ description: |-
 
 ### Optional
 
+- `applicationbundle` (String) The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.
 - `clusterfeatures` (Attributes) Extra features allowing management of additional Kubernetes features that are considered standard. (see [below for nested schema](#nestedatt--clusterfeatures))
 - `clusteropenstack` (Attributes) (see [below for nested schema](#nestedatt--clusteropenstack))
+- `eckcp` (String) The associated ECK Control Plane for the cluster.
 - `wait` (Boolean) Whether to wait for the cluster to be provisioned
 - `workloadnodepools` (Attributes List) (see [below for nested schema](#nestedatt--workloadnodepools))
 
 ### Read-Only
 
-- `applicationbundle` (String) The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.
-- `eckcp` (String) The associated ECK Control Plane for the cluster.
 - `kubeconfig` (String) The kubeconfig for the cluster.
 - `status` (String) The provisioning status of the cluster.
 
