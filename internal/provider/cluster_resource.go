@@ -84,7 +84,7 @@ func (r *clusterResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "The version of the bundled components in the cluster.  See https://docs.eschercloud.ai/Kubernetes/Reference/compatibility_matrix for details.",
 				Computed:    true,
 				Optional:    true,
-				Default:     stringdefault.StaticString("kubernetes-cluster-1.4.0"),
+				Default:     stringdefault.StaticString("kubernetes-cluster-1.4.1"),
 			},
 			"kubeconfig": schema.StringAttribute{
 				Description: "The kubeconfig for the cluster.",
