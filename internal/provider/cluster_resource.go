@@ -364,7 +364,6 @@ func (r *clusterResource) Create(ctx context.Context, req resource.CreateRequest
 				"Error Waiting for Resource to be Ready",
 				err.Error(),
 			)
-			return
 		}
 		kubeconfig = getKubeconfig(*r.client, ctx, plan.EckCp.ValueString(), cluster.Name)
 	}
